@@ -1,0 +1,20 @@
+{
+  "name": "@pipeworx/mcp-riksbank-se",
+  "version": "0.1.0",
+  "description": "Sveriges Riksbank (Sweden's central bank) SWEA v1 MCP. Keyless.",
+  "type": "module",
+  "main": "src/index.ts",
+  "types": "src/index.ts",
+  "keywords": ["mcp", "mcp-server", "model-context-protocol", "pipeworx", "riksbank-se"],
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/pipeworx-io/mcp-riksbank-se"
+  },
+  "scripts": {
+    "typecheck": "tsc --noEmit"
+  },
+  "devDependencies": {
+    "typescript": "^5.7.0"
+  }
+}
