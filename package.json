@@ -1,6 +1,6 @@
 {
   "name": "@pipeworx/mcp-riksbank-se",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "description": "Sveriges Riksbank (Sweden's central bank) SWEA v1 MCP. Keyless.",
   "type": "module",
   "main": "src/index.ts",
@@ -26,7 +26,7 @@
     "@cloudflare/workers-types": "^4.20260405.1"
   },
   "pipeworx": {
-    "sourceHash": "v1-5192348aab68254cc8f10d3d06a7e9ac158f547db8a70ef6dcb948f5dfb78d5e",
-    "sourceCommit": "00c836ddeaecbdd581dcfb0fb1842efea104006e"
+    "sourceHash": "v1-1c5d6965a2e55384e46ceda0a8b6e173cda2e30f5d0b458bfdb2edf875eff7eb",
+    "sourceCommit": "6fe8fb3e01138dfc4ebe7d5c246503aab9278d06"
   }
 }
