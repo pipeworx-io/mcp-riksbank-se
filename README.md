@@ -2,7 +2,7 @@
 
 Sveriges Riksbank (Sweden's central bank) SWEA v1 MCP. Keyless.
 
-Part of [Pipeworx](https://pipeworx.io) — an MCP gateway connecting AI agents to 1683+ live data sources.
+Part of [Pipeworx](https://pipeworx.io) — an MCP gateway connecting AI agents to 1819+ live data sources. This is an independent, unofficial integration — not affiliated with, endorsed by, or published by the upstream provider.
 
 ## Tools
 
@@ -10,7 +10,8 @@ Part of [Pipeworx](https://pipeworx.io) — an MCP gateway connecting AI agents 
 |------|-------------|
 | `list_series` | Browse/search the Riksbank SWEA catalogue of time series (interest rates and SEK exchange rates). Returns series IDs plus descriptions and available date ranges. Optionally filter by a case-insensitive substring matched against the series ID and descriptions, e.g. "policy", "rate", "EUR", or "exchange". Series IDs are string codes; well-known ones: SECBREPOEFF (policy rate, formerly repo rate), SECBDEPOEFF (deposit rate), SECBLENDEFF (lending rate), SEKEURPMI (EUR/SEK fixing), SEKUSDPMI (USD/SEK fixing), SEKGBPPMI (GBP/SEK), SEKJPYPMI (JPY/SEK). Omit query to list all (~117 series). |
 | `get_observations` | Time-series observations for one series over a date range. Pass a series ID and a from/to window (dates YYYY-MM-DD). Returns an array of {date, value}. Example: seriesId "SEKEURPMI" gives the daily EUR/SEK exchange-rate fixing; "SECBREPOEFF" gives the Riksbank policy rate. Use list_series to discover IDs. |
-| `latest_observation` | Most recent observation for a single series, as {date, value}. Example: seriesId "SECBREPOEFF" returns the current Riksbank policy rate; "SEKUSDPMI" returns the latest USD/SEK fixing. |
+| `latest_observation` | Most recent observation for a single series, as {date, value}. Example: seriesId "SECBREPOEFF" returns the current Riksbank policy rate; "SEKUSDPMI" returns the latest USD/SEK fixing. For the policy rate specifically, policy_rate also gives the previous rate and when it changed. |
+| `policy_rate` | The Riksbank's current policy rate (series SECBREPOEFF): the rate, the date it took effect, the previous rate and when that one took effect, plus recent decision history — computed from the daily series so a caller does not have to infer the decision date from latest_observation's bare {date, value}. |
 | `cross_rates` | Cross exchange rate between two SEK currency-fixing series over a date range. series1 is the base, series2 the quote; the result is series1/series2 per day. Example: series1 "SEKEURPMI", series2 "SEKUSDPMI" gives EUR/USD derived from the SEK fixings. Provide from (required) and optionally to (both YYYY-MM-DD); omit to to run through the latest date. Use SEK currency series IDs ending in "PMI" (see list_series). |
 
 ## Quick Start
@@ -57,7 +58,7 @@ directly, instead of just this one's:
 }
 ```
 
-Both URLs reach the same gateway and the same 1683+ data sources. The
+Both URLs reach the same gateway and the same 1819+ data sources. The
 only difference is which pack's tools are listed **directly**; `ask_pipeworx`
 reaches all of them from either one.
 

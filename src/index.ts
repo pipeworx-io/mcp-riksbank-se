@@ -676,6 +676,11 @@ function collapse(s: string): string {
  * Covers Swedish policy/key interest rates and SEK foreign-exchange rates.
  * Series are identified by string codes (e.g. SECBREPOEFF = policy rate,
  * SEKEURPMI = EUR/SEK, SEKUSDPMI = USD/SEK). All dates are YYYY-MM-DD.
+ *
+ * policy_rate is the direct "current rate + effective date + previous rate"
+ * convenience tool, computed from the daily SECBREPOEFF series rather than
+ * left for the caller to infer from latest_observation's bare {date, value}
+ * (same shape as the Norges Bank fix, fleet #3204).
  */
 
 
@@ -689,6 +694,7 @@ async function pwFetch(url: string | URL, init?: RequestInit): Promise<Response>
 
 const BASE = 'https://api.riksbank.se/swea/v1';
 const UA = 'pipeworx-mcp-riksbank-se/1.0 (+https://pipeworx.io)';
+const POLICY_RATE_SERIES = 'SECBREPOEFF';
 
 const tools: McpToolExport['tools'] = [
   {
@@ -728,7 +734,8 @@ const tools: McpToolExport['tools'] = [
     name: 'latest_observation',
     description:
       'Most recent observation for a single series, as {date, value}. ' +
-      'Example: seriesId "SECBREPOEFF" returns the current Riksbank policy rate; "SEKUSDPMI" returns the latest USD/SEK fixing.',
+      'Example: seriesId "SECBREPOEFF" returns the current Riksbank policy rate; "SEKUSDPMI" returns the latest USD/SEK fixing. ' +
+      'For the policy rate specifically, policy_rate also gives the previous rate and when it changed.',
     inputSchema: {
       type: 'object',
       properties: {
@@ -736,6 +743,14 @@ const tools: McpToolExport['tools'] = [
       },
       required: ['seriesId'],
     },
+  },
+  {
+    name: 'policy_rate',
+    description:
+      "The Riksbank's current policy rate (series SECBREPOEFF): the rate, the date it took effect, the previous " +
+      'rate and when that one took effect, plus recent decision history — computed from the daily series so a ' +
+      "caller does not have to infer the decision date from latest_observation's bare {date, value}.",
+    inputSchema: { type: 'object', properties: {} },
   },
   {
     name: 'cross_rates',
@@ -810,6 +825,46 @@ async function callTool(name: string, args: Record<string, unknown>): Promise<un
           'Call riksbank_se_list_series to find valid ids (~117 of them) — well-known ones are ' +
           'SECBREPOEFF (policy rate), SEKEURPMI (EUR/SEK) and SEKUSDPMI (USD/SEK).',
       );
+    }
+    case 'policy_rate': {
+      const to = new Date().toISOString().slice(0, 10);
+      // 5 years back — comfortably more than enough to see the last several
+      // decisions; the policy rate can hold for a year or more at a time.
+      const from = `${Number(to.slice(0, 4)) - 5}${to.slice(4)}`;
+      const raw = (await riksGet(
+        `/Observations/${enc(POLICY_RATE_SERIES)}/${enc(from)}/${enc(to)}`,
+        'upstream_down: Riksbank answered the policy-rate series with 204 No Content. ' +
+          'Nothing about this call can cause that, so it is an upstream fault; the same call may work on retry.',
+      )) as { date: string; value: number }[];
+      if (!Array.isArray(raw) || raw.length === 0) {
+        return {
+          error: 'no_data',
+          message: `Riksbank returned no observations for the policy rate series (${POLICY_RATE_SERIES}). Try get_observations with a wider date range.`,
+        };
+      }
+      // raw is ascending by date (confirmed against the live SWEA API). Walk
+      // forward and record each point where the rate changes — the same
+      // "current + effective_since + previous" shape as the Norges Bank fix
+      // (fleet #3204), so a caller does not have to infer the decision date
+      // from a bare observations list.
+      const changes: { rate: number; effective_since: string }[] = [{ rate: raw[0].value, effective_since: raw[0].date }];
+      for (let i = 1; i < raw.length; i++) {
+        if (raw[i].value !== changes[changes.length - 1].rate) {
+          changes.push({ rate: raw[i].value, effective_since: raw[i].date });
+        }
+      }
+      const current = changes[changes.length - 1];
+      const previous = changes.length > 1 ? changes[changes.length - 2] : null;
+      return {
+        seriesId: POLICY_RATE_SERIES,
+        rate: current.rate,
+        unit: 'percent',
+        effective_since: current.effective_since,
+        previous_rate: previous?.rate ?? null,
+        previous_rate_effective_since: previous?.effective_since ?? null,
+        decision_history: changes.slice(-5).reverse(),
+        data_as_of: raw[raw.length - 1].date,
+      };
     }
     case 'cross_rates': {
       const series1 = reqStr(args, 'series1', '"SEKEURPMI"');
