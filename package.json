@@ -1,12 +1,20 @@
 {
   "name": "@pipeworx/mcp-riksbank-se",
-  "version": "0.1.3",
+  "version": "0.2.0",
   "description": "Sveriges Riksbank (Sweden's central bank) SWEA v1 MCP. Keyless.",
   "type": "module",
-  "main": "src/index.ts",
-  "types": "src/index.ts",
+  "main": "lib/index.js",
+  "exports": {
+    ".": "./lib/index.js",
+    "./tools.json": "./tools.json",
+    "./package.json": "./package.json"
+  },
   "bin": {
     "mcp-riksbank-se": "bin/cli.js"
+  },
+  "files": ["bin/", "lib/", "tools.json", "server.json"],
+  "engines": {
+    "node": ">=18"
   },
   "keywords": ["mcp", "mcp-server", "model-context-protocol", "pipeworx", "riksbank-se"],
   "license": "MIT",
@@ -14,19 +22,12 @@
     "type": "git",
     "url": "git+https://github.com/pipeworx-io/mcp-riksbank-se.git"
   },
-  "scripts": {
-    "typecheck": "tsc --noEmit"
-  },
-  "dependencies": {
-    "@modelcontextprotocol/sdk": "^1.30.0",
-    "tsx": "^4.19.0"
-  },
-  "devDependencies": {
-    "typescript": "^5.9.3",
-    "@cloudflare/workers-types": "^4.20260405.1"
-  },
+  "mcpName": "io.github.pipeworx-io/riksbank-se",
   "pipeworx": {
-    "sourceHash": "v1-a5ed6716714eb874935185c0d7d10cd1a947625bb99e848568a411543fb9e157",
-    "sourceCommit": "f5821587e59206a76fc200d1b9cbeaad15a549ab"
+    "mode": "gateway",
+    "slug": "riksbank-se",
+    "gatewaySlug": "riksbank-se",
+    "sourceHash": "v1-45cd801c043bee3dadae8dba24025b0feb1b83b516ad42f8b5ef9d7179ccf42d",
+    "sourceCommit": "6bae4cfa7b6a73bbe014dc8820a19c80c842b21e"
   }
 }
